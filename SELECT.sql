@@ -1,6 +1,6 @@
 SELECT name, duration FROM songs WHERE duration = (SELECT max(duration) FROM songs);
 
-SELECT name  FROM songs WHERE duration >= '00:03:30';
+SELECT name FROM songs WHERE duration >= '00:03:30';
 
 SELECT name FROM collections WHERE year_of_release BETWEEN 2018 AND 2020;
 
@@ -22,7 +22,7 @@ JOIN songs ON songs.albums_id=albums.id
 GROUP BY albums.name
 
 SELECT nickname FROM performers
-WHERE NOT performers.id IN (
+WHERE NOT id IN (
 	SELECT performers_id FROM albums_performers
 	JOIN albums ON albums.id = albums_performers.albums_id
 	WHERE year_of_release = 2020);
