@@ -1,4 +1,4 @@
-SELECT name, duration FROM songs ORDER BY duration DESC LIMIT 1;
+SELECT name, duration FROM songs WHERE duration = (SELECT max(duration) FROM songs);
 
 SELECT name  FROM songs WHERE duration >= '00:03:30';
 
@@ -21,18 +21,21 @@ SELECT albums.name, avg(duration) FROM albums
 JOIN songs ON songs.albums_id=albums.id
 GROUP BY albums.name
 
-SELECT performers_id FROM albums_performers
-JOIN albums ON albums.id = albums_performers.albums_id 
-WHERE year_of_release != 2016;
+SELECT nickname FROM performers
+WHERE NOT performers.id IN (
+	SELECT performers_id FROM albums_performers
+	JOIN albums ON albums.id = albums_performers.albums_id
+	WHERE year_of_release = 2020);
 
-SELECT collections.name FROM collections
+
+SELECT DISTINCT collections.name FROM collections
 JOIN collections_songs ON collections.id = collections_songs.collections_id
 JOIN songs ON collections_songs.songs_id = songs.id
 JOIN albums ON albums.id = songs.albums_id
 JOIN albums_performers ON albums.id = albums_performers.albums_id 
 JOIN performers ON performers.id = albums_performers.performers_id 
 WHERE nickname = 'The Weekend'
-GROUP BY collections.name
+
 
 SELECT albums.name FROM albums
 JOIN albums_performers ON albums.id = albums_performers.albums_id
@@ -53,15 +56,11 @@ JOIN albums_performers ON albums.id = albums_performers.albums_id
 JOIN performers ON performers.id = albums_performers.performers_id
 WHERE duration = (SELECT min(duration) FROM songs)
 
-
-SELECT nickname, duration FROM songs 
-JOIN albums ON songs.albums_id = albums.id 
-JOIN albums_performers ON albums.id = albums_performers.albums_id 
-JOIN performers ON performers.id = albums_performers.performers_id
-ORDER BY duration
-
- 
-
-SELECT albums.name FROM albums 
-JOIN (SELECT albums_id, count(*) as songs_count FROM songs GROUP BY albums_id) songs ON albums.id = songs.albums_id
-WHERE songs.songs_count = (SELECT Min(songs_count)  FROM ( SELECT albums_id, count(*) AS  songs_count FROM songs GROUP BY albums_id));
+SELECT albums.name, count(songs.name) FROM albums
+JOIN songs ON albums.id = songs.albums_id GROUP BY albums.id
+HAVING count(songs.name) = (
+	SELECT count(songs.name) FROM albums
+	JOIN songs ON albums.id = songs.albums_id
+	GROUP BY albums.id
+	ORDER BY COUNT(songs.name)
+	LIMIT 1);
